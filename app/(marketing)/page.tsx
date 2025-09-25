@@ -36,38 +36,45 @@ export default async function Home() {
           <strong>JigiTone</strong>
         </h1>
         <div>
-          <ClerkLoading>
-            <Loader className="h-5 w-5 text-muted-foreground animate-spin" />
-          </ClerkLoading>
-          <ClerkLoaded>
-            <SignedOut>
-              <SignUpButton
-                mode="modal"
-                fallbackRedirectUrl="/learn"
-                signInFallbackRedirectUrl="/learn"
-              >
-                <Button size="lg" variant="secondary" className="w-full">
-                  Get Started
-                </Button>
-              </SignUpButton>
+          <div className="flex flex-col items-center gap-y-3 w-full max-w-[330px]">
+            <ClerkLoading>
+              <Loader className="h-5 w-5 text-muted-foreground animate-spin" />
+            </ClerkLoading>
+            <ClerkLoaded>
+              <SignedOut>
+                <SignUpButton
+                  mode="modal"
+                  fallbackRedirectUrl="/learn"
+                  signInFallbackRedirectUrl="/learn"
+                >
+                  <Button size="lg" variant="secondary" className="w-full">
+                    Get Started
+                  </Button>
+                </SignUpButton>
 
-              <SignInButton
-                mode="modal"
-                fallbackRedirectUrl="/learn"
-                signUpFallbackRedirectUrl="/learn"
-              >
-                <Button size="lg" variant="primaryOutline" className="w-full">
-                  I already have an account
-                </Button>
-              </SignInButton>
-            </SignedOut>
+                <SignInButton
+                  mode="modal"
+                  fallbackRedirectUrl="/learn"
+                  signUpFallbackRedirectUrl="/learn"
+                >
+                  <Button size="lg" variant="primaryOutline" className="w-full">
+                    I already have an account
+                  </Button>
+                </SignInButton>
+              </SignedOut>
 
-            <SignedIn>
-              <Button size="lg" variant="secondary" className="w-full" asChild>
-                <Link href="/learn">Continue Learning</Link>
-              </Button>
-            </SignedIn>
-          </ClerkLoaded>
+              <SignedIn>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="w-full"
+                  asChild
+                >
+                  <Link href="/learn">Continue Learning</Link>
+                </Button>
+              </SignedIn>
+            </ClerkLoaded>
+          </div>
         </div>
       </div>
     </div>
