@@ -3,15 +3,19 @@ import { StickyWrapper } from "@/components/sticky-wrapper";
 import React from "react";
 import Header from "./header";
 import { UserProgress } from "@/components/user-progress";
-import { getUserProgress } from "@/db/queries";
+import { getUnits, getUserProgress } from "@/db/queries";
 import { redirect } from "next/navigation";
 
 // Learn page component - requires active course to be set
-const page = async () => {
+const LearnPage = async () => {
   // Fetch user progress data
   const userProgressData = getUserProgress();
+  const unitsData = getUnits();
 
-  const [userProgress] = await Promise.all([userProgressData]);
+  const [userProgress, units] = await Promise.all([
+    userProgressData,
+    unitsData,
+  ]);
 
   // Redirect to courses page if no progress or active course
   if (!userProgress || !userProgress.activeCourse) {
@@ -30,9 +34,14 @@ const page = async () => {
       </StickyWrapper>
       <FeedWrapper>
         <Header title={userProgress.activeCourse.title} />
+        {units.map((unit) => (
+          <div key={unit.id} className="mb-10">
+            {JSON.stringify(unit)}
+          </div>
+        ))}
       </FeedWrapper>
     </div>
   );
 };
 
-export default page;
+export default LearnPage;
