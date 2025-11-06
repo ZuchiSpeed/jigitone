@@ -79,6 +79,13 @@ export const getUnits = cache(async () => {
   const normalizedData = data.map((unit) => {
     // For each lesson in the unit, calculate if all challenges are completed
     const lessonWithCompletedStatus = unit.lessons.map((lesson) => {
+      if (lesson.challenges.length === 0) {
+        return {
+          ...lesson,
+          completed: false,
+        };
+      }
+
       // Check if every challenge in the lesson is completed
       const allCompletedChallenges = lesson.challenges.every((challenge) => {
         return (
