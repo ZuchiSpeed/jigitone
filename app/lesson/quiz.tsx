@@ -3,16 +3,19 @@
 import { challengeOptions, challenges } from "@/db/schema";
 import React, { useState } from "react";
 import { Header } from "./header";
+import { QuestionBubble } from "./question-bubble";
+import { Challenge } from "./challenge";
 
+// Props interface defining the data structure passed to the Quiz component
 type Props = {
   initialLessonId: number;
-  initialHearts: number;
-  initialPercentage: number;
+  initialHearts: number; // User's current hearts/lives
+  initialPercentage: number; // User's progress percentage
   initialLessonChallenges: (typeof challenges.$inferSelect & {
     completed: boolean;
     challengeOptions: (typeof challengeOptions.$inferSelect)[];
-  })[];
-  userSubscription: any;
+  })[]; // Array of challenges with their options and completion status
+  userSubscription: any; // User's subscription info
 };
 
 const Quiz = ({
@@ -22,16 +25,65 @@ const Quiz = ({
   initialLessonChallenges,
   userSubscription,
 }: Props) => {
+  // State management for user progress and game data
   const [hearts, setHearts] = useState(initialHearts);
   const [percentage, setPercentage] = useState(initialPercentage);
+  const [challenges] = useState(initialLessonChallenges);
+
+  // Smart initial state: finds first incomplete challenge or defaults to first one
+  const [activeIndex, setActiveIndex] = useState(() => {
+    const uncompletedIndex = challenges.findIndex(
+      (challenge) => !challenge.completed
+    );
+    return uncompletedIndex === -1 ? 0 : uncompletedIndex;
+  });
+
+  // Get current challenge and its options based on active index
+  const challenge = challenges[activeIndex];
+  const options = challenge?.challengeOptions ?? [];
+
+  // Dynamic title based on challenge type
+  const title =
+    challenge.type === "ASSIST"
+      ? "Select the correct meaning" // Instruction for ASSIST type
+      : challenge.question; // Direct question for SELECT type
 
   return (
     <>
+      {/* Header shows user progress, hearts, and subscription status */}
       <Header
         hearts={hearts}
         percentage={percentage}
         hasActiveSubscription={!!userSubscription?.isActive}
       />
+
+      {/* Main quiz content area */}
+      <div className="flex-1">
+        <div className="h-full flex items-center justify-center">
+          <div className="lg:min-h-[350px] lg:w-[600px] w-full px-6 lg:px-0 flex flex-col gap-y-12">
+            {/* Challenge title/instruction */}
+            <h1 className="text-lg lg:text-3xl text-center lg:text-start font-bold text-neutral-700">
+              {title}
+            </h1>
+
+            <div>
+              {/* Show question bubble only for ASSIST type challenges */}
+              {challenge.type === "ASSIST" && (
+                <QuestionBubble question={challenge.question} />
+              )}
+              {/* Main challenge component with options */}
+              <Challenge
+                options={options}
+                onSelect={() => {}} // TODO: Implement selection handler
+                status="none" // TODO: Implement status logic
+                selectedOption={undefined} // TODO: Track selected option
+                disabled={false} // TODO: Implement disable logic
+                type={challenge.type}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 };
