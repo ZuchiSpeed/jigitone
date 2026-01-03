@@ -1,11 +1,14 @@
 "use client";
 
 import { challengeOptions, challenges } from "@/db/schema";
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import { Header } from "./header";
 import { QuestionBubble } from "./question-bubble";
 import { Challenge } from "./challenge";
 import { Footer } from "./footer";
+import { upsertChallengeProgress } from "@/actions/challenge-progress";
+import { toast } from "sonner";
+import { reduceHearts } from "@/actions/user-progress";
 
 /**
  * Quiz Component - Main quiz container that orchestrates the learning experience
@@ -42,6 +45,8 @@ const Quiz = ({
   initialLessonChallenges,
   userSubscription,
 }: Props) => {
+  const [pending, startTransition] = useTransition();
+
   // State management for user progress and game data
   const [hearts, setHearts] = useState(initialHearts);
   const [percentage, setPercentage] = useState(initialPercentage);
@@ -71,6 +76,95 @@ const Quiz = ({
   // Get current challenge and its options based on active index
   const challenge = challenges[activeIndex];
   const options = challenge?.challengeOptions ?? [];
+
+  /**
+   * Advances to the next challenge in the sequence
+   */
+
+  const onNext = () => {
+    setActiveIndex((next) => next + 1); // Increment active challenge index
+  };
+
+  /**
+   * Main handler for continuing/checking answers
+   * Orchestrates the complete answer validation flow
+   */
+
+  const onContinue = () => {
+    // Prevent action if no option is selected
+    if (!selectedOption) return;
+
+    // Handle UI reset after wrong answer (allow retry)
+    if (status === "wrong") {
+      setStatus("none");
+      setSelectedOption(undefined);
+      return;
+    }
+
+    // Handle moving to next challenge after correct answer
+    if (status === "correct") {
+      onNext();
+      setStatus("none");
+      setSelectedOption(undefined);
+      return;
+    }
+
+    // Find the correct answer from available options
+    const correctOption = options.find((option) => option.correct);
+
+    // Step 1: Check if selected answer is correct
+    if (correctOption && correctOption.id === selectedOption) {
+      // Correct answer flow
+      startTransition(() => {
+        // Call server action to record progress and award points
+        upsertChallengeProgress(challenge.id)
+          .then((response) => {
+            // Handle case where user has no hearts
+            if (response?.error === "hearts") {
+              console.log("Missing hearts");
+              // TODO: Show UI notification about needing hearts
+              return;
+            }
+
+            // Update UI state for correct answer
+            setStatus("correct");
+
+            // Calculate and update progress percentage
+            // Each challenge contributes equally to total progress
+            setPercentage((prev) => prev + 100 / challenges.length);
+
+            // Award heart if user completed entire lesson (100% progress)
+            if (initialPercentage === 100) {
+              setHearts((prev) => Math.min(prev + 1, 5));
+            }
+          })
+          .catch(() => toast.error("Something went wrong. Please try again"));
+      });
+    } else {
+      // Incorrect answer flow
+      startTransition(() => {
+        // Call server action to deduct a heart
+        reduceHearts(challenge.id)
+          .then((response) => {
+            // Handle case where user has no hearts
+            if (response?.error === "hearts") {
+              console.error("Missing Hearts");
+              // TODO: Show UI for purchasing hearts or waiting
+              return;
+            }
+
+            // Show wrong answer UI state
+            setStatus("wrong");
+
+            // Only deduct heart if not in practice mode (handled by server)
+            if (!response?.error) {
+              setHearts((prev) => Math.max(prev - 1, 0)); // Ensure never negative
+            }
+          })
+          .catch(() => toast.error("Something went wrong. Please try again"));
+      });
+    }
+  };
 
   // Dynamic title based on challenge type
   const title =
@@ -107,7 +201,7 @@ const Quiz = ({
                 onSelect={onSelect} // TODO: Implement selection handler
                 status={status} // TODO: Implement status logic
                 selectedOption={selectedOption} // TODO: Track selected option
-                disabled={false} // TODO: Implement disable logic
+                disabled={pending} // TODO: Implement disable logic
                 type={challenge.type}
               />
             </div>
@@ -115,7 +209,11 @@ const Quiz = ({
         </div>
       </div>
       {/* Footer with check button and status feedback */}
-      <Footer disabled={!selectedOption} status={status} onCheck={() => {}} />
+      <Footer
+        disabled={pending || !selectedOption}
+        status={status}
+        onCheck={onContinue}
+      />
     </>
   );
 };
