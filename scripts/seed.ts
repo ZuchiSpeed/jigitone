@@ -163,7 +163,24 @@ const main = async () => {
         text: "el robot",
         audioSrc: "/es_robot.mp3",
       },
-    ])
+    ]);
+    //Hard Coded additional challenge tests
+    await db.insert(schema.challenges).values([
+      {
+        id: 3,
+        lessonId: 2,
+        type: "SELECT",
+        order: 1,
+        question: 'Which one of these is the "the man"?',
+      },
+      {
+        id: 4,
+        lessonId: 2, // Verbs
+        type: "ASSIST",
+        order: 2,
+        question: 'Which one of these is the "the robot"?',
+      },
+    ]);
 
     console.log("Seeding Finished");
   } catch (error) {
