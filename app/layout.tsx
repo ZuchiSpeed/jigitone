@@ -4,6 +4,8 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import { ExitModel } from "@/components/models/exit-model";
+import { HeartsModel } from "@/components/models/hearts-model";
+import { PracticeModel } from "@/components/models/practice-model";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +36,8 @@ export default function RootLayout({
           <Toaster />
           {/* Dialog Content */}
           <ExitModel />
+          <HeartsModel />
+          <PracticeModel />
           {children}
         </body>
       </html>

@@ -9,11 +9,13 @@ import { Footer } from "./footer";
 import { upsertChallengeProgress } from "@/actions/challenge-progress";
 import { toast } from "sonner";
 import { reduceHearts } from "@/actions/user-progress";
-import { useAudio, useWindowSize } from "react-use";
+import { useAudio, useMount, useWindowSize } from "react-use";
 import Image from "next/image";
 import { ResultCard } from "./result-card";
 import { useRouter } from "next/navigation";
 import Confetti from "react-confetti";
+import { useHeartsModel } from "@/store/use-hearts-model";
+import { usePracticeModel } from "@/store/use-practice-model";
 
 /**
  * Quiz Component - Main quiz container that orchestrates the learning experience
@@ -50,6 +52,15 @@ const Quiz = ({
   initialLessonChallenges,
   userSubscription,
 }: Props) => {
+  const { open: openHeartsModel } = useHeartsModel();
+  const { open: openPracticeModel } = usePracticeModel();
+
+  useMount(() => {
+    if (initialPercentage === 100) {
+      openPracticeModel();
+    }
+  });
+
   //Confetti setup
   const { width, height } = useWindowSize();
   const router = useRouter();
@@ -138,8 +149,8 @@ const Quiz = ({
           .then((response) => {
             // Handle case where user has no hearts
             if (response?.error === "hearts") {
-              console.log("Missing hearts");
-              // TODO: Show UI notification about needing hearts
+              //Show UI notification about needing hearts
+              openHeartsModel();
               return;
             }
             //success sound effect
@@ -167,8 +178,8 @@ const Quiz = ({
           .then((response) => {
             // Handle case where user has no hearts
             if (response?.error === "hearts") {
-              console.error("Missing Hearts");
-              // TODO: Show UI for purchasing hearts or waiting
+              //Show UI for purchasing hearts or waiting
+              openHeartsModel();
               return;
             }
             //incorrect sound effect
