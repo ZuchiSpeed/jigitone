@@ -9,6 +9,7 @@ import {
   lessons,
   units,
   userProgress,
+  userSubscription,
 } from "@/db/schema";
 
 // Export a cached function to fetch courses from the database
@@ -255,4 +256,38 @@ export const getLessonPercentage = cache(async () => {
   );
 
   return percentage;
+});
+
+// Constant for one day in milliseconds - used for grace period
+const DAY_IN_MS = 86_400_000;
+
+// Function to check if the current user has an active subscription
+// Wrapped in cache() for performance (Next.js data caching)
+export const getUserSubscription = cache(async () => {
+  // Get the authenticated user's ID from Clerk
+  const { userId } = await auth();
+
+  // If no user is logged in, return null
+  if (!userId) return null;
+
+  // Query the database for the user's subscription record
+  const data = await db.query.userSubscription.findFirst({
+    where: eq(userSubscription.userId, userId),
+  });
+
+  // If no subscription record exists, return null
+  if (!data) return null;
+
+  // Check if subscription is active:
+  // 1. Must have a stripePriceId (valid subscription)
+  // 2. Current period end + 1 day grace period must be in the future
+  const isActive =
+    data.stripePriceId &&
+    data.stripeCurrentPeriodEnd?.getTime() + DAY_IN_MS > Date.now();
+
+  // Return subscription data with isActive flag
+  return {
+    ...data,
+    isActive: !!isActive, // Convert to boolean
+  };
 });

@@ -6,6 +6,7 @@ import {
   pgTable,
   serial,
   text,
+  timestamp,
 } from "drizzle-orm/pg-core";
 
 // =============================================================================
@@ -270,6 +271,21 @@ export const userProgressRelations = relations(userProgress, ({ one }) => ({
     references: [courses.id], // Referenced primary key
   }),
 }));
+
+export const userSubscription = pgTable("user_subscription", {
+  // Primary key for the subscription record
+  id: serial("id").primaryKey(),
+  // The user ID from the authentication system (Clerk in this case)
+  userId: text("user_id").notNull().unique(),
+  // Stripe's customer ID - unique identifier in Stripe's system
+  stripeCustomerId: text("stripe_customer_id").notNull().unique(),
+  // Stripe's subscription ID - tracks the specific subscription
+  stripeSubscriptionId: text("stripe_subscription_id").notNull().unique(),
+  // The price/plan ID the user is subscribed to
+  stripePriceId: text("stripe_price_id").notNull(),
+  // When the current billing period ends (used to check if subscription is active)
+  stripeCurrentPeriodEnd: timestamp("stripe_current_period_end").notNull(),
+});
 
 // =============================================================================
 // KEY RELATIONSHIPS SUMMARY:

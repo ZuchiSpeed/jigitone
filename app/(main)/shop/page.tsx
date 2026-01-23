@@ -1,16 +1,25 @@
 import { FeedWrapper } from "@/components/feed-wrapper";
 import { StickyWrapper } from "@/components/sticky-wrapper";
 import { UserProgress } from "@/components/user-progress";
-import { getUserProgress } from "@/db/queries";
+import { getUserProgress, getUserSubscription } from "@/db/queries";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import React from "react";
 import { Items } from "./items";
 
+// Main shop page component (Server Component)
 const ShopPage = async () => {
+  // Fetch user progress and subscription data in parallel for performance
   const userProgressData = getUserProgress();
-  const [userProgress] = await Promise.all([userProgressData]);
+  const userSubscriptionData = getUserSubscription();
 
+  // Wait for both queries to complete
+  const [userProgress, userSubscription] = await Promise.all([
+    userProgressData,
+    userSubscriptionData,
+  ]);
+
+  // Redirect to courses if user hasn't started learning
   if (!userProgress || !userProgress.activeCourse) {
     redirect("/courses");
   }
@@ -22,7 +31,7 @@ const ShopPage = async () => {
           activeCourse={userProgress.activeCourse}
           hearts={userProgress.hearts}
           points={userProgress.points}
-          hasActiveSubscription={false}
+          hasActiveSubscription={!!userSubscription?.isActive}
         />
       </StickyWrapper>
       <FeedWrapper>
@@ -37,7 +46,7 @@ const ShopPage = async () => {
           <Items
             hearts={userProgress.hearts}
             points={userProgress.points}
-            hasActiveSubscription={false}
+            hasActiveSubscription={!!userSubscription?.isActive}
           />
         </div>
       </FeedWrapper>
