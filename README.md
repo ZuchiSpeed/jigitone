@@ -1,6 +1,22 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
+#Clerk Environment Variables
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="clerkpublishablekey"
+CLERK_SECRET_KEY=clerksecretkey
+
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
+
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+#Database Environment Variables
+DATABASE_URL="postgress url"
+
+STRIPE_API_KEY="key"
+STRIPE_WEBHOOK_SECRET="key"
 
 First, run the development server:
 
